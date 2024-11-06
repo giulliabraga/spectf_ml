@@ -10,15 +10,15 @@ The assignment is divided between two questions, detailed below.
 
 ### First Question
 
-1. Consider the "SPECTF Heart" data from the UCI website (http://archive.ics.uci.edu/dataset/96/spectf+heart). Concatenate the SPECTF.test and SPECTF.train datasets to form the SPECTF data set with 267 individuals (lines) described by 45 variables (columns), the first column being the class variable. *Parameters*: T = 100; \( \in = 10^-6\); m = 1.1.
+1. Consider the "SPECTF Heart" data from the UCI website (http://archive.ics.uci.edu/dataset/96/spectf+heart). Concatenate the SPECTF.test and SPECTF.train datasets to form the SPECTF data set with 267 individuals (lines) described by 45 variables (columns), the first column being the class variable. *Parameters*: T = 100; $$ \in = 10^-6$$; m = 1.1.
    
-    1.1 Run the KFCM-K and KFCM-K-W.1 algorithms 50 times each to get a fuzzy partition with \(c\in{2,3,4,5}\). For each c select the best result according to the objective function. For each c get the corresponding crisp partition from the best fuzzy partition. For each c and crisp partition calculate the silhouette (Sil). Plot \(Sil x c\) for c\( \in \){2,3,4,5} and choose the number of clusters: \(c^* = \arg \max_c \text{Sil}(c)\).
+    1.1 Run the KFCM-K and KFCM-K-W.1 algorithms 50 times each to get a fuzzy partition with $$c\in{2,3,4,5}$$. For each c select the best result according to the objective function. For each c get the corresponding crisp partition from the best fuzzy partition. For each c and crisp partition calculate the silhouette (Sil). Plot $$Sil x c$$ for c$$ \in $${2,3,4,5} and choose the number of clusters: $$c^* = \arg \max_c \text{Sil}(c)$$.
 
-    1.2 For each algorithm and best fuzzy partition with \( c^*\) , calculate the Modified partition coefficient. Comment.
+    1.2 For each algorithm and best fuzzy partition with $$ c^*$$ , calculate the Modified partition coefficient. Comment.
     
-    1.3 For each algorithm and crisp partition corresponding to the best fuzzy partition with \( c^*\), calculate the corrected Rand index. Comment.
+    1.3 For each algorithm and crisp partition corresponding to the best fuzzy partition with $$ c^*$$, calculate the corrected Rand index. Comment.
 
-    1.4 For each algorithm and best result according to the objective function with \( c^*\), show: 
+    1.4 For each algorithm and best result according to the objective function with $$ c^*$$, show: 
     i. the prototypes of each group (g1,...,gc); 
     ii. the vector of width parameters of each group (s1,..., sc) 
     iii. the confusion matrix of the crisp partition versus the a priori partition; 
