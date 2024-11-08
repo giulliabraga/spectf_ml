@@ -1,7 +1,14 @@
-from scipy.stats import randint
-from classifiers_comparison import ClassifiersComparison
+from classifier_cv import ClassifierCrossValidation
 import pandas as pd
-from sklearn.neighbors import KNeighborsClassifier
+from model_selector import get_model_and_params, get_majority_voting_classifier
+
+'''
+Configure the experimental settings
+'''
+
+finetune = True
+
+model_name = "LR"
 
 dataset = pd.read_csv('./data/preprocessed/SPECTF_preprocessed.csv')
 
@@ -11,18 +18,17 @@ dataset = pd.read_csv('./data/preprocessed/SPECTF_preprocessed.csv')
 X = dataset.drop(columns='target')
 y = dataset['target']
 
-# Set the model and parameters dictionary you want to use
-model = KNeighborsClassifier()
-param_dict = {
-    'n_neighbors': randint(3,10),
-    'weights':['uniform', 'distance'],
-    'algorithm':['auto', 'ball_tree','kd_tree','brute'],
-    'metric' : ['euclidean', 'manhattan', 'chebyshev'],
-}
 
-comparison = ClassifiersComparison(X,y,model)
+'''
+Run the experiment
+'''
 
-metrics = comparison.cross_validation(finetune=False)
+model, param_dict = get_model_and_params(model_name)
 
-metrics.to_csv('./results/metrics_knn_with_tuning.csv')
+# model, param_dict = get_majority_voting_classifier()
 
+cv = ClassifierCrossValidation(X, y, model, param_dict)
+
+metrics = cv.cross_validation(finetune=finetune)
+
+metrics.to_csv(f'./results/metrics_{model_name}_tuning_{finetune}.csv')

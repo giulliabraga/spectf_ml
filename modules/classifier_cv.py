@@ -6,9 +6,9 @@ from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, precision_s
 from sklearn.pipeline import Pipeline, make_pipeline
 import statistics as st
 
-class ClassifiersComparison():
+class ClassifierCrossValidation():
     """
-    Implements several methods to perform the comparison of multiple classifiers.
+    Implements several methods to perform a robust cross-validation for a classifier.
 
     Parameters:
     X (array-like): Dataset features.
@@ -17,8 +17,8 @@ class ClassifiersComparison():
     param_dict (dict, optional): Dictionary of hyperparameters for fine-tuning. Defaults to None.
 
     Methods:
-    - 
-    -
+    - fine_tuning_pipeline
+    - cross_validation
 
     """
 
@@ -67,8 +67,10 @@ class ClassifiersComparison():
         metrics_per_split = {
             'iteration': [],
             'fold': [],
+            'error_rate': [],
             'train_accuracy': [],
             'test_accuracy': [],
+            'coverage': [],
             'f1_score': [],
             'AUC': [],
             'precision': [],
@@ -125,6 +127,8 @@ class ClassifiersComparison():
                 auc = roc_auc_score(y_test_split, y_test_pred_split)
                 prec = precision_score(y_test_split, y_test_pred_split)
                 rec = recall_score(y_test_split, y_test_pred_split)
+                error_rate = 1 - test_accuracy  # Error rate is 1 - accuracy
+                coverage = (y_test_pred_split == 1).sum() / len(y_test_pred_split)
 
                 # Storing metrics
                 metrics_per_split['train_accuracy'].append(train_accuracy)
@@ -133,6 +137,8 @@ class ClassifiersComparison():
                 metrics_per_split['AUC'].append(auc)
                 metrics_per_split['precision'].append(prec)
                 metrics_per_split['recall'].append(rec)
+                metrics_per_split['error_rate'].append(error_rate)
+                metrics_per_split['coverage'].append(coverage)
                 metrics_per_split['fold'].append(f'fold_{fold}')
                 metrics_per_split['iteration'].append(f'iteration_{rnd_state}')
                 
@@ -141,44 +147,3 @@ class ClassifiersComparison():
         print(f'\n Metrics: \n{metrics}')
         
         return metrics
-    
-    def metrics_estimation(self, metric):
-        """
-        Get an estimate and confidence interval for a classifier evaluation metric.
-
-        Parameters:
-        metric (list): All observations for a certain metric.
-
-        Outputs:
-        estimate (float): The point estimate for an evaluation metric.
-        confidence_interval (string): The 95% confidence interval for this metric.
-
-        """
-
-
-        estimate = {}
-        return estimate
-    
-    def friedman_test(self, metrics):
-        '''
-        Use the Friedman test (non-parametric) to compare the classifiers.
-        '''
-
-        friedman_results = {}
-
-        return friedman_results
-    
-    def nemenyi_test(self, metrics):
-        '''
-        Use the Nemenyi post-hoc test to compare the classifiers.
-        '''
-
-        nemenyi_results = {}
-
-        return nemenyi_results
-
-
-if __name__ == "__main__":
-    dataset = pd.read_csv('../data/preprocessed/SPECTF_preprocessed.csv')
-
-    comparison = ClassifiersComparison(dataset)
