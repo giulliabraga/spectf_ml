@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import RandomizedSearchCV, train_test_split, StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, precision_score, recall_score
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, make_pipeline
 import statistics as st
 
 class ClassifiersComparison():
@@ -11,49 +11,45 @@ class ClassifiersComparison():
     Implements several methods to perform the comparison of multiple classifiers.
 
     Parameters:
-    dataset (DataFrame): Dataset containing features and target variable.
+    X (array-like): Dataset features.
+    y (array-like): Dataset target variable
 
     Methods:
-    - calculate_metrics:
+    - 
+    -
+
     """
 
-    def __init__(self, dataset, model):
-        self.dataset = dataset
-        self.classifiers = []
-        self.best_params = []
+    def __init__(self, X, y, model, param_dict):
+        self.X = X
+        self.y = y
         self.model = model
-        
+        self.param_dict = param_dict
 
-    def metrics_estimation(self, metric):
+    def fine_tuning_pipeline(self):
         """
-        Get an estimate and confidence interval for a classifier evaluation metric.
+        Creation of a preprocessing and classifier pipeline for fine-tuning.
 
-        Parameters:
-        metric (list): All observations for a certain metric.
-
-        Returns:
-        estimate (float): The point estimate for an evaluation metric.
-        confidence_interval (string): The 95% confidence interval for this metric.
-
+        Outputs:
+        Pipeline: A scikit-learn pipeline containing a scaler and a randomized search cross-validation class for a classifier's hyperparameter fine-tuning.
         """
 
+        optimized_model = make_pipeline(StandardScaler(), 
+                                        RandomizedSearchCV(
+                                        self.model, 
+                                        self.param_dict, 
+                                        cv=StratifiedKFold(n_splits=5, random_state=0),
+                                        scoring='accuracy', 
+                                        refit = True,
+                                        n_jobs=-1, 
+                                        random_state=0,
+                                        verbose=0 
+                                        )
+                                    )
 
-        estimate = {}
-        return estimate
+        return optimized_model
 
-    def make_pipeline(self):
-        """
-        Creation of a preprocessing and classifier pipeline.
-
-        Returns:
-        Pipeline: A scikit-learn pipeline containing a scaler and a classifier.
-        """
-        return Pipeline([
-            ('scaler', StandardScaler()),
-            ('clf', self.model_create)
-        ])
-
-    def cross_validation(self, X, y, pipeline):
+    def cross_validation(self, n_folds=10, finetune = True):
         """
         To perform a 30 x 10-fold cross-validation, the following strategy was adopted: 
         - For each 10-fold cross-validation, the scikit function StratifiedKFold was used. 
@@ -62,86 +58,87 @@ class ClassifiersComparison():
         Parameters:
         """
 
-        cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=0)
+        features = self.X
+        labels = self.y
 
-        # Lists to store the metrics obtained per split
-        metrics_per_split = {
-            'train_accuracy': [],
-            'test_accuracy': [],
-            'f1_score': [],
-            'AUC': [],
-            'precision': [],
-            'recall': [],        
-        }
+        for rnd_state in range(30):
 
-        fold = 0
-        for train_idx, test_idx in cv.split(X, y):
-        
-            print(f'Fold: {fold}')
+            cv = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=rnd_state)
 
-            # Train and test split for this particular fold
-            X_train_split, y_train_split = X[train_idx], y[train_idx]
-            X_test_split, y_test_split = X[test_idx], y[test_idx]
+            # Lists to store the metrics obtained per split
+            metrics_per_split = {
+                'iteration': [],
+                'fold': [],
+                'train_accuracy': [],
+                'test_accuracy': [],
+                'f1_score': [],
+                'AUC': [],
+                'precision': [],
+                'recall': [],        
+            }
 
-            # Fitting model
-            fitted_model = pipeline.fit(X_train_split,y_train_split)
+            fold = 0
 
-            # Train and test predictions
-            y_train_pred_split = fitted_model.predict(X_train_split)
-            y_test_pred_split = fitted_model.predict(X_test_split)
+            for train_idx, test_idx in cv.split(features, labels):
+            
+                print(f'Fold: {fold}')
 
-            # Calculate metrics
-            train_accuracy = accuracy_score(y_train_split, y_train_pred_split)
-            test_accuracy = accuracy_score(y_test_split, y_test_pred_split)
-            f1 = f1_score(y_test_split, y_test_pred_split)
-            auc = roc_auc_score(y_test_split, y_test_pred_split)
-            prec = precision_score(y_test_split, y_test_pred_split)
-            rec = recall_score(y_test_split, y_test_pred_split)
+                # Train and test split for this particular fold
+                X_train_split, y_train_split = features[train_idx], labels[train_idx]
+                X_test_split, y_test_split = features[test_idx], labels[test_idx]
 
-            # Storing metrics
-            metrics_per_split['train_accuracy'].append(train_accuracy)
-            metrics_per_split['test_accuracy'].append(test_accuracy)
-            metrics_per_split['f1_score'].append(f1)
-            metrics_per_split['AUC'].append(auc)
-            metrics_per_split['precision'].append(prec)
-            metrics_per_split['recall'].append(rec)
+                # Fitting model
+                if finetune:
+                    fitted_model = self.hyperparameter_tuning(self.model)
+                    fitted_model.fit(X_train_split, y_train_split)
+                else: 
+                    fitted_model = self.model
+                    fitted_model.fit(X_train_split, y_train_split)
 
-            fold = fold + 1
+                # Train and test predictions
+                y_train_pred_split = fitted_model.predict(X_train_split)
+                y_test_pred_split = fitted_model.predict(X_test_split)
+
+                # Calculate metrics
+                train_accuracy = accuracy_score(y_train_split, y_train_pred_split)
+                test_accuracy = accuracy_score(y_test_split, y_test_pred_split)
+                f1 = f1_score(y_test_split, y_test_pred_split)
+                auc = roc_auc_score(y_test_split, y_test_pred_split)
+                prec = precision_score(y_test_split, y_test_pred_split)
+                rec = recall_score(y_test_split, y_test_pred_split)
+
+                # Storing metrics
+                metrics_per_split['train_accuracy'].append(train_accuracy)
+                metrics_per_split['test_accuracy'].append(test_accuracy)
+                metrics_per_split['f1_score'].append(f1)
+                metrics_per_split['AUC'].append(auc)
+                metrics_per_split['precision'].append(prec)
+                metrics_per_split['recall'].append(rec)
+                metrics_per_split['fold'].append(f'fold_{fold}')
+                metrics_per_split['iteration'].append(f'iteration_{rnd_state}')
+
+                fold = fold + 1
 
         metrics_df = pd.DataFrame(metrics_per_split)
-
+        
         return metrics_df
-
-
-    def hyperparameter_tuning(self, X, y, pipeline, params):
+    
+    def metrics_estimation(self, metric):
         """
-        This method implements a 5-fold hyperparameter optimization in the remaining 9 folds for each step in the 30 x 10-fold cross-validation.
+        Get an estimate and confidence interval for a classifier evaluation metric.
 
         Parameters:
-        X (array-like): Training features.
-        y (array-like): Training labels.
-        pipeline (Pipeline): A scikit-learn pipeline.
+        metric (list): All observations for a certain metric.
 
-        Returns:
-        best_params (dict): The best hyperparameters for the classifier.
+        Outputs:
+        estimate (float): The point estimate for an evaluation metric.
+        confidence_interval (string): The 95% confidence interval for this metric.
+
         """
 
-        rnd_search = RandomizedSearchCV(
-            pipeline, 
-            params, 
-            cv=StratifiedKFold(n_splits=5, random_state=0),
-            scoring='accuracy', 
-            n_jobs=-1, 
-            random_state=0, # For better reproductibility
-            verbose=0 
-            )
-        
-        rnd_search.fit(X, y)
 
-        # The best parameters will be used to initialize a new model and retrain it with the remaining 9-folds
-        best_params = rnd_search.best_params_ 
-
-        return best_params
+        estimate = {}
+        return estimate
     
     def friedman_test(self, metrics):
         '''
