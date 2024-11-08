@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import RandomizedSearchCV, train_test_split, StratifiedKFold
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, precision_score, recall_score
 from sklearn.pipeline import Pipeline, make_pipeline
 import statistics as st
@@ -12,7 +12,9 @@ class ClassifiersComparison():
 
     Parameters:
     X (array-like): Dataset features.
-    y (array-like): Dataset target variable
+    y (array-like): Dataset target variable.
+    model: The classifier model to be used.
+    param_dict (dict, optional): Dictionary of hyperparameters for fine-tuning. Defaults to None.
 
     Methods:
     - 
@@ -20,7 +22,7 @@ class ClassifiersComparison():
 
     """
 
-    def __init__(self, X, y, model, param_dict):
+    def __init__(self, X, y, model, param_dict=None):
         self.X = X
         self.y = y
         self.model = model
@@ -38,12 +40,12 @@ class ClassifiersComparison():
                                         RandomizedSearchCV(
                                         self.model, 
                                         self.param_dict, 
-                                        cv=StratifiedKFold(n_splits=5, random_state=0),
+                                        cv=StratifiedKFold(n_splits=5, random_state=0, shuffle=True),
                                         scoring='accuracy', 
                                         refit = True,
                                         n_jobs=-1, 
                                         random_state=0,
-                                        verbose=0 
+                                        verbose=1 
                                         )
                                     )
 
@@ -58,40 +60,57 @@ class ClassifiersComparison():
         Parameters:
         """
 
-        features = self.X
-        labels = self.y
+        features = self.X.values
+        target = self.y.values
+
+        # Lists to store the metrics
+        metrics_per_split = {
+            'iteration': [],
+            'fold': [],
+            'train_accuracy': [],
+            'test_accuracy': [],
+            'f1_score': [],
+            'AUC': [],
+            'precision': [],
+            'recall': [],        
+        }
 
         for rnd_state in range(30):
 
-            cv = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=rnd_state)
+            print(f'Iteration {rnd_state}')
 
-            # Lists to store the metrics obtained per split
-            metrics_per_split = {
-                'iteration': [],
-                'fold': [],
-                'train_accuracy': [],
-                'test_accuracy': [],
-                'f1_score': [],
-                'AUC': [],
-                'precision': [],
-                'recall': [],        
-            }
+            skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=rnd_state)
 
-            fold = 0
-
-            for train_idx, test_idx in cv.split(features, labels):
+            for fold, (train_idx, test_idx) in enumerate(skf.split(features, target)):
             
                 print(f'Fold: {fold}')
 
                 # Train and test split for this particular fold
-                X_train_split, y_train_split = features[train_idx], labels[train_idx]
-                X_test_split, y_test_split = features[test_idx], labels[test_idx]
+                X_train_split, y_train_split = features[train_idx], target[train_idx]
+                X_test_split, y_test_split = features[test_idx], target[test_idx]
 
                 # Fitting model
-                if finetune:
-                    fitted_model = self.hyperparameter_tuning(self.model)
-                    fitted_model.fit(X_train_split, y_train_split)
-                else: 
+
+                if finetune: #You can choose to fine-tune it every fold
+
+                    # Maybe the user did not define the parameters dictionary. In this case you cannot perform the search.
+                    if self.param_dict == None:
+                        raise Exception("The 'params_dict' parameter was not defined.")
+                    
+                    # If it was defined correctly, the fine-tuning will be performed
+                    else:
+                        print('Hyperparameter fine-tuning...\n')
+                        fitted_model = self.fine_tuning_pipeline()
+
+                        rnd_cv_results = fitted_model.fit(X_train_split, y_train_split)
+
+                        best_params = rnd_cv_results.named_steps['randomizedsearchcv'].best_params_
+                        best_score = rnd_cv_results.named_steps['randomizedsearchcv'].best_score_
+
+                        print(f'Best parameters: {best_params} \nBest accuracy: {best_score}')
+
+                else: # Or just fit it without any fine-tuning
+                    print('Fitting without fine-tuning...\n')
                     fitted_model = self.model
                     fitted_model.fit(X_train_split, y_train_split)
 
@@ -116,12 +135,12 @@ class ClassifiersComparison():
                 metrics_per_split['recall'].append(rec)
                 metrics_per_split['fold'].append(f'fold_{fold}')
                 metrics_per_split['iteration'].append(f'iteration_{rnd_state}')
+                
+        metrics = pd.DataFrame(metrics_per_split)
 
-                fold = fold + 1
-
-        metrics_df = pd.DataFrame(metrics_per_split)
+        print(f'\n Metrics: \n{metrics}')
         
-        return metrics_df
+        return metrics
     
     def metrics_estimation(self, metric):
         """
