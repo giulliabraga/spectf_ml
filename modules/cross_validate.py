@@ -31,4 +31,4 @@ cv = ClassifierCrossValidation(X, y, model, param_dict)
 
 metrics = cv.cross_validation(finetune=finetune)
 
-metrics.to_csv(f'./results/metrics_{model_name}_tuning_{finetune}.csv')
+metrics.to_csv(f'./results/metrics_{model_name}_tuning_{finetune}.csv', index=False)
