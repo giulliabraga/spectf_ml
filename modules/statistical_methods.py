@@ -24,30 +24,6 @@ class StatisticalMethods():
         self.list_of_model_results = list_of_model_results
         self.list_of_model_names = list_of_model_names
         self.list_of_metrics_names = list_of_metrics_names
-
-    def get_estimate_and_ci(self, parameter):
-        """
-        Get a point estimate and a confidence interval for an array of observations.
-
-        Parameters:
-        parameter (array-like): Array containing observations for a certain parameter.
-
-        Outputs:
-        mean_estimate (float): The mean point estimate for this parameter.
-        std_deviation (float): The sample's standard deviation.
-        confidence_interval (string): The confidence interval for this parameter.
-        """
-        # Point estimate for the parameters mean
-        mean_estimate = np.mean(parameter)
-
-        # Sample std
-        std_deviation = np.std(parameter)
-
-        # 95% confidence interval
-        E = 1.96 * (std_deviation / len(parameter))
-        confidence_interval = f'{mean_estimate - E}, mean, {mean_estimate + E}'
-
-        return mean_estimate, std_deviation, confidence_interval
     
     def concat_dataframes(self, list_of_dfs, list_of_ids):
         '''
@@ -171,3 +147,82 @@ class StatisticalMethods():
         nemenyi_results = pd.DataFrame(nemenyi_dict)
 
         return nemenyi_results
+    
+    def get_estimate_and_ci(self):
+        """
+        Compute point estimates, standard deviations, and confidence intervals for each metric across models.
+
+        Outputs:
+        results_table (DataFrame): DataFrame with columns:
+            - 'model': The name of the model.
+            - 'metric': The metric name.
+            - 'mean': The mean point estimate for each metric.
+            - 'std': The sample's standard deviation for each metric.
+            - 'ci': The confidence interval for each metric.
+        """
+
+        results_list = []
+
+        for model_name, model_df in zip(self.list_of_model_names, self.list_of_model_results):
+
+            for metric in self.list_of_metrics_names:
+                if metric in model_df.columns:
+                    parameter = model_df[metric]
+                    
+                    mean_estimate = np.mean(parameter)
+                    std_deviation = np.std(parameter)
+                    E = 1.96 * (std_deviation / np.sqrt(len(parameter)))
+                    confidence_interval = f'{mean_estimate - E:.4f}, {mean_estimate + E:.4f}'
+
+                    results_list.append({
+                        'model': model_name,
+                        'metric': metric,
+                        'mean': mean_estimate,
+                        'std': std_deviation,
+                        'ci': confidence_interval
+                    })
+
+        results_table = pd.DataFrame(results_list)
+        return results_table
+    
+    def get_formatted_estimate_and_ci(self):
+        """
+        Generate an output formatted in portuguese for the estimates with confidence intervals for each model and metric.
+
+        Outputs:
+        formatted_table (DataFrame) -> DataFrame with column names in Portuguese:
+            - 'Modelo': The name of the model.
+            - 'Métrica': The name of the metric.
+            - 'Média ± Desvio (%)': Mean estimate with standard deviation in percentage format.
+            - 'IC (%)': Confidence interval in percentage format.
+        """
+        # Primeiro, gera a tabela inicial com as estatísticas
+        results_table = self.get_estimate_and_ci()
+
+        # Dicionário de tradução para as métricas
+        metric_translation = {
+            'error_rate': 'Taxa de erro',
+            'test_accuracy': 'Acurácia de teste',
+            'coverage': 'Cobertura', 
+            'f1_score': 'F1-score'
+        }
+
+        formatted_list = []
+
+        for _, row in results_table.iterrows():
+            metric_name = metric_translation.get(row['metric'], row['metric'])
+            
+            mean_std = f"{row['mean'] * 100:.2f} ± {row['std'] * 100:.2f}"
+
+            ci_lower, ci_upper = map(float, row['ci'].split(', '))
+            confidence_interval = f"[{ci_lower * 100:.2f} , {ci_upper * 100:.2f}]"
+
+            formatted_list.append({
+                'Modelo': row['model'],
+                'Métrica': metric_name,
+                'Média (%)': mean_std,
+                'IC (%)': confidence_interval
+            })
+
+        formatted_table = pd.DataFrame(formatted_list)
+        return formatted_table
