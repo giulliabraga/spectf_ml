@@ -1,8 +1,9 @@
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from time import time
-from sklearn.metrics import adjusted_rand_score
+from sklearn.metrics import adjusted_rand_score, confusion_matrix
 import pandas as pd
+from scipy.optimize import linear_sum_assignment
 
 class KFCM_K:
     def __init__(self, c, m=1.1, epochs=100, tol=1e-6, seed=0):
@@ -78,7 +79,8 @@ class KFCM_K:
             "error": self._evaluate_error,
         }
         metric_function = metrics.get(metric, "error")
-        return metric_function()
+        return metric_function
+
 
     def _update_kernel(self):
         squared_distances = (self._x - self._g.T) ** 2
@@ -117,20 +119,20 @@ class KFCM_K:
         self._update_kernel()
         return
 
-    def _evaluate_accuracy(self):
-        pred = np.argmax(self._u, axis=1)
-        y_with_pred = pd.DataFrame(np.concatenate((self._y, pred), axis=1))
-        y_with_pred["value"] = 1
-        pivot_table = pd.pivot_table(
-            y_with_pred, columns=[0], index=[1], values="value", aggfunc="sum"
-        )
-        pivot_table = pivot_table.fillna(0).values
+    def _match_clusters(self, y_true, y_pred):
+        conf_matrix = confusion_matrix(y_true, y_pred)
+        row_ind, col_ind = linear_sum_assignment(conf_matrix, maximize=True)
+        mapping = {col: row for row, col in zip(row_ind, col_ind)}
+        y_pred_aligned = np.array([mapping[label] for label in y_pred])
+        return y_pred_aligned
 
-        n_i = pivot_table.sum(axis=1)[:, np.newaxis]
-        p_ij = pivot_table / n_i
-        p_i = p_ij.max(axis=1)[:, np.newaxis]
-        acc = (n_i * p_i).sum(axis=0) / self._n
-        return acc[0]
+    def _evaluate_accuracy(self):
+        pred = np.argmax(self._u, axis=1).flatten()
+        y_true = self._y.flatten()
+        pred_aligned = self._match_clusters(y_true, pred)
+        accuracy = np.mean(pred_aligned == y_true)
+        return accuracy
+
 
     def _evaluate_modified_partition_coefficient(self):
         pc = np.sum(self._u**2) / self._n
