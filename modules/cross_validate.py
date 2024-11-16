@@ -6,9 +6,9 @@ from model_selector import get_model_and_params, get_majority_voting_classifier
 Configure the experimental settings
 '''
 
-finetune = True
+finetune = False
 
-model_name = "VotingClassifier"
+model_name = "Voting"
 
 dataset = pd.read_csv('./data/preprocessed/SPECTF_preprocessed.csv')
 
@@ -23,7 +23,7 @@ y = dataset['target']
 Run the experiment
 '''
 
-# model, param_dict = get_model_and_params(model_name)
+#model, param_dict = get_model_and_params(model_name)
 
 model, param_dict = get_majority_voting_classifier()
 

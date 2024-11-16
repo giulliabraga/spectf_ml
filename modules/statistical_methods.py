@@ -196,10 +196,8 @@ class StatisticalMethods():
             - 'Média ± Desvio (%)': Mean estimate with standard deviation in percentage format.
             - 'IC (%)': Confidence interval in percentage format.
         """
-        # Primeiro, gera a tabela inicial com as estatísticas
         results_table = self.get_estimate_and_ci()
 
-        # Dicionário de tradução para as métricas
         metric_translation = {
             'error_rate': 'Taxa de erro',
             'test_accuracy': 'Acurácia de teste',

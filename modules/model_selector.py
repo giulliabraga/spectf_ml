@@ -2,7 +2,7 @@ import json
 from sklearn.ensemble import VotingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from parzen_classifier import ParzenClassifier  
 
 '''
@@ -21,7 +21,7 @@ with open('./utils/parameter_dictionaries.json', 'r') as file:
 MODEL_MAP = {
     "KNN": KNeighborsClassifier,
     "LR": LogisticRegression,
-    "GNB": GaussianNB,
+    "QDA": QuadraticDiscriminantAnalysis,
     "Parzen": ParzenClassifier
 }
 
@@ -62,13 +62,13 @@ def get_majority_voting_classifier():
     """
     knn = KNeighborsClassifier()
     lr = LogisticRegression() 
-    gnb = GaussianNB()
+    qda = QuadraticDiscriminantAnalysis()
     parzen = ParzenClassifier()
     
     voting_clf = VotingClassifier(estimators=[
         ('KNN', knn),
         ('LR', lr),
-        ('GNB', gnb),
+        ('QDA', qda),
         ('Parzen', parzen)
     ], voting='hard')  
     
@@ -80,7 +80,7 @@ def get_majority_voting_classifier():
         'LR__' + key: value for key, value in PARAM_DICT_MAP["LR"].items()
     })
     param_dict.update({
-        'GNB__' + key: value for key, value in PARAM_DICT_MAP["GNB"].items()
+        'QDA__' + key: value for key, value in PARAM_DICT_MAP["QDA"].items()
     })
     param_dict.update({
         'Parzen__' + key: value for key, value in PARAM_DICT_MAP["Parzen"].items()

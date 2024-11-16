@@ -2,16 +2,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.metrics import accuracy_score, f1_score
 
 class LearningCurvePlotter:
     """
-    A class to plot learning curves for a Gaussian Naive Bayes classifier using different evaluation metrics,
+    A class to plot learning curves for a QDA classifier using different evaluation metrics,
     and store the results in a DataFrame.
 
     Attributes:
-        classifier (sklearn.naive_bayes.GaussianNB): The Gaussian Naive Bayes classifier.
+        classifier (sklearn.naive_bayes.QuadraticDiscriminantAnalysis): The QDA classifier.
         X (array-like): The feature matrix.
         y (array-like): The target vector.
         metrics (list): List of evaluation metrics to plot.
@@ -29,7 +29,7 @@ class LearningCurvePlotter:
         """
         self.X = X
         self.y = y
-        self.classifier = GaussianNB()
+        self.classifier = QuadraticDiscriminantAnalysis()
         self.metrics = metrics if metrics else ['test_accuracy', 'error_rate', 'coverage', 'f1_score']
         self.results_df = pd.DataFrame()
 
@@ -85,7 +85,7 @@ class LearningCurvePlotter:
         for metric, scores in results.items():
             plt.plot(train_sizes * 100, scores, label=metric)
 
-        plt.title('Learning Curves for Gaussian Naive Bayes')
+        plt.title('Learning Curves for QDA')
         plt.xlabel('Training Size (%)')
         plt.ylabel('Score')
         plt.legend()
