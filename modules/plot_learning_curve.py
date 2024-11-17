@@ -38,18 +38,25 @@ class LearningCurvePlotter:
         Plots learning curves for each evaluation metric, training the classifier with varying training sizes.
         Also stores the results in the DataFrame.
         """
-        train_sizes = np.arange(0.05, 1.00, 0.05)  
+        # Split the data into 70% training and 30% testing
+        X_train_full, X_test, y_train_full, y_test = train_test_split(
+            self.X, self.y, test_size=0.30, stratify=self.y
+        )
+
+        train_sizes = np.arange(0.05, 1.00, 0.05)  # Training sizes from 5% to 100%
         results = {metric: [] for metric in self.metrics}
         table_data = []
 
         for train_size in train_sizes:
-            X_train, X_test, y_train, y_test = train_test_split(
-                self.X, self.y, train_size=train_size, stratify=self.y
+            # Subsample the training set
+            X_train, _, y_train, _ = train_test_split(
+                X_train_full, y_train_full, train_size=train_size, stratify=y_train_full
             )
             self.classifier.fit(X_train, y_train)
             y_pred = self.classifier.predict(X_test)
 
             row = {'train_size': f"{train_size*100:.1f}%"}
+
             for metric in self.metrics:
                 if metric == 'test_accuracy':
                     value = accuracy_score(y_test, y_pred)
@@ -83,7 +90,7 @@ class LearningCurvePlotter:
         """
         plt.figure(figsize=(10, 6))
         for metric, scores in results.items():
-            plt.plot(train_sizes * 100, scores, label=metric)
+            plt.plot(train_sizes * 100, scores, label=metric,marker='.')
 
         plt.title('Learning Curves for QDA')
         plt.xlabel('Training Size (%)')
