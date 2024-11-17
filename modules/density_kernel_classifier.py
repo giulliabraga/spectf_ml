@@ -21,7 +21,7 @@ class KernelDensityClassifier:
         Kernel Density Estimator for the negative class.
     """
 
-    def __init__(self, kernel='gaussian', bandwidth=0.5):
+    def __init__(self, kernel='gaussian', bandwidth=1.0):
         self.kernel = kernel
         self.bandwidth = bandwidth
         self.kde_positive = None
@@ -67,8 +67,8 @@ class KernelDensityClassifier:
         log_density_positive = self.kde_positive.score_samples(X_new)
         log_density_negative = self.kde_negative.score_samples(X_new)
         
-        density_positive = np.exp(log_density_positive)
-        density_negative = np.exp(log_density_negative)
+        density_positive = log_density_positive
+        density_negative = log_density_negative
         
         total_density = density_positive + density_negative
         return density_positive / total_density

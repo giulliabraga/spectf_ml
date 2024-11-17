@@ -8,7 +8,7 @@ Configure the experimental settings
 
 finetune = False
 
-model_name = "Voting"
+model_name = "KDE"
 
 dataset = pd.read_csv('./data/preprocessed/SPECTF_preprocessed.csv')
 
@@ -23,9 +23,9 @@ y = dataset['target']
 Run the experiment
 '''
 
-#model, param_dict = get_model_and_params(model_name)
+model, param_dict = get_model_and_params(model_name)
 
-model, param_dict = get_majority_voting_classifier()
+#model, param_dict = get_majority_voting_classifier()
 
 cv = ClassifierCrossValidation(X, y, model, param_dict)
 

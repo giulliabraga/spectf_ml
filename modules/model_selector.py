@@ -4,6 +4,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from parzen_classifier import ParzenClassifier  
+from density_kernel_classifier import KernelDensityClassifier
 
 '''
 This module allows for an easy selection of a model with its respective parameter grid for a randomized search cross-validation.
@@ -22,7 +23,8 @@ MODEL_MAP = {
     "KNN": KNeighborsClassifier,
     "LR": LogisticRegression,
     "QDA": QuadraticDiscriminantAnalysis,
-    "Parzen": ParzenClassifier
+    "Parzen": ParzenClassifier,
+    "KDE": KernelDensityClassifier
 }
 
 # Mapping parameter dictionaries
