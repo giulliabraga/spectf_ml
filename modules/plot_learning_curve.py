@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score
 
 class LearningCurvePlotter:
     """
@@ -67,7 +67,7 @@ class LearningCurvePlotter:
                     results['error_rate'].append(value)
                     row['error_rate'] = value
                 elif metric == 'coverage':
-                    coverage = np.mean(np.in1d(y_test, y_pred))
+                    coverage = recall_score(y_test, y_pred)
                     results['coverage'].append(coverage)
                     row['coverage'] = coverage
                 elif metric == 'f1_score':
@@ -92,9 +92,9 @@ class LearningCurvePlotter:
         for metric, scores in results.items():
             plt.plot(train_sizes * 100, scores, label=metric,marker='.')
 
-        plt.title('Learning Curves for QDA')
-        plt.xlabel('Training Size (%)')
-        plt.ylabel('Score')
+        plt.title('Curva de Aprendizagem - Bayesiano Gaussiano')
+        plt.xlabel('Tamanho do Conjunto de Treino (%)')
+        plt.ylabel('Métrica')
         plt.legend()
         plt.grid(True)
         plt.show()

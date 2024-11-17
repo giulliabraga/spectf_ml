@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold, GridSearchCV
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, precision_score, recall_score
 from sklearn.pipeline import Pipeline, make_pipeline
 import statistics as st
@@ -37,14 +37,13 @@ class ClassifierCrossValidation():
         """
 
         optimized_model = make_pipeline(StandardScaler(), 
-                                        RandomizedSearchCV(
+                                        GridSearchCV(
                                         self.model, 
                                         self.param_dict, 
                                         cv=StratifiedKFold(n_splits=5, random_state=0, shuffle=True),
                                         scoring='accuracy', 
                                         refit = True,
                                         n_jobs=-1, 
-                                        random_state=0,
                                         verbose=1 
                                         )
                                     )
@@ -74,7 +73,6 @@ class ClassifierCrossValidation():
             'f1_score': [],
             'AUC': [],
             'precision': [],
-            'recall': [],        
         }
 
         for rnd_state in range(30):
@@ -106,8 +104,8 @@ class ClassifierCrossValidation():
 
                         rnd_cv_results = fitted_model.fit(X_train_split, y_train_split)
 
-                        best_params = rnd_cv_results.named_steps['randomizedsearchcv'].best_params_
-                        best_score = rnd_cv_results.named_steps['randomizedsearchcv'].best_score_
+                        best_params = rnd_cv_results.named_steps['gridsearchcv'].best_params_
+                        best_score = rnd_cv_results.named_steps['gridsearchcv'].best_score_
 
                         print(f'Best parameters: {best_params} \nBest accuracy: {best_score}')
 
@@ -136,9 +134,8 @@ class ClassifierCrossValidation():
                 metrics_per_split['f1_score'].append(f1)
                 metrics_per_split['AUC'].append(auc)
                 metrics_per_split['precision'].append(prec)
-                metrics_per_split['recall'].append(rec)
                 metrics_per_split['error_rate'].append(error_rate)
-                metrics_per_split['coverage'].append(coverage)
+                metrics_per_split['coverage'].append(rec)
                 metrics_per_split['fold'].append(f'fold_{fold}')
                 metrics_per_split['iteration'].append(f'iteration_{rnd_state}')
                 
