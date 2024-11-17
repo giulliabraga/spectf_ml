@@ -25,15 +25,9 @@
         }
     },
     {
-        "model": "Parzen",
-        "params_dict":{
-            "bandwidth": [0.6,0.7,0.8,0.9,1.0, 2.0, 5.0]
-        }
-    },
-    {
         "model": "KDE",
         "params_dict":{
-            "bandwidth": [0.5,0.6,0.7,0.8,0.9,1.0,"scott", "silverman"]
+            "bandwidth": [0.5,0.6,0.7,0.8,0.9,1.0,2.0,"scott", "silverman"]
         }
     }
 ]

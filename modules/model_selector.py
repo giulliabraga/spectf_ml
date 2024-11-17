@@ -3,7 +3,6 @@ from sklearn.ensemble import VotingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from parzen_classifier import ParzenClassifier  
 from density_kernel_classifier import KernelDensityClassifier
 
 '''
@@ -23,7 +22,6 @@ MODEL_MAP = {
     "KNN": KNeighborsClassifier,
     "LR": LogisticRegression,
     "QDA": QuadraticDiscriminantAnalysis,
-    "Parzen": ParzenClassifier,
     "KDE": KernelDensityClassifier
 }
 
@@ -65,13 +63,13 @@ def get_majority_voting_classifier():
     knn = KNeighborsClassifier()
     lr = LogisticRegression() 
     qda = QuadraticDiscriminantAnalysis()
-    parzen = ParzenClassifier()
+    kde = KernelDensityClassifier()
     
     voting_clf = VotingClassifier(estimators=[
         ('KNN', knn),
         ('LR', lr),
         ('QDA', qda),
-        ('Parzen', parzen)
+        ('KDE', kde)
     ], voting='hard')  
     
     # This is the parameter dictionary for RandomizedSearchCV
@@ -85,7 +83,7 @@ def get_majority_voting_classifier():
         'QDA__' + key: value for key, value in PARAM_DICT_MAP["QDA"].items()
     })
     param_dict.update({
-        'Parzen__' + key: value for key, value in PARAM_DICT_MAP["Parzen"].items()
+        'KDE__' + key: value for key, value in PARAM_DICT_MAP["KDE"].items()
     })
     
     return voting_clf, param_dict

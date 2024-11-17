@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.neighbors import KernelDensity
+from sklearn.base import BaseEstimator
 
-
-class KernelDensityClassifier:
+class KernelDensityClassifier(BaseEstimator):
     """
     Kernel Density Classifier for binary classification.
 
@@ -46,6 +46,22 @@ class KernelDensityClassifier:
 
         self.kde_positive.fit(X_positive)
         self.kde_negative.fit(X_negative)
+
+    def get_params(self, deep=True):
+        """
+        Get parameters for this estimator.
+
+        Parameters
+        ----------
+        deep : bool, optional (default=True)
+            If True, will return the parameters for this estimator.
+
+        Returns
+        -------
+        params : dict
+            Dictionary of parameter names mapped to their values.
+        """
+        return {"kernel": self.kernel, "bandwidth": self.bandwidth}
 
     def predict_proba(self, X_new):
         """
