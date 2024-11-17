@@ -1,8 +1,9 @@
 import numpy as np
 from sklearn.neighbors import KernelDensity
-from sklearn.base import BaseEstimator
 
-class KernelDensityClassifier(BaseEstimator):
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+class KernelDensityClassifier(BaseEstimator, ClassifierMixin):
     """
     Kernel Density Classifier for binary classification.
 
@@ -74,8 +75,8 @@ class KernelDensityClassifier(BaseEstimator):
 
         Returns
         -------
-        probabilities : array, shape (n_samples,)
-            Estimated probabilities of the positive class.
+        probabilities : array, shape (n_samples, 2)
+            Estimated probabilities of the negative and positive classes.
         """
         if self.kde_positive is None or self.kde_negative is None:
             raise ValueError("The model has not been fitted yet. Call 'fit' with appropriate data.")
