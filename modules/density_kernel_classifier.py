@@ -40,10 +40,10 @@ class KernelDensityClassifier:
         """
         X_positive = X[y == 1]
         X_negative = X[y == 0]
-        
+
         self.kde_positive = KernelDensity(kernel=self.kernel, bandwidth=self.bandwidth)
         self.kde_negative = KernelDensity(kernel=self.kernel, bandwidth=self.bandwidth)
-        
+
         self.kde_positive.fit(X_positive)
         self.kde_negative.fit(X_negative)
 
@@ -70,10 +70,9 @@ class KernelDensityClassifier:
         density_positive = np.exp(log_density_positive)
         density_negative = np.exp(log_density_negative)
         
-        total_density = density_positive + density_negative
-        return density_positive / total_density
+        return np.vstack((density_negative, density_positive)).T
 
-    def predict(self, X_new, threshold=0.5):
+    def predict(self, X_new):
         """
         Predict the class labels for the new data.
 
@@ -81,13 +80,11 @@ class KernelDensityClassifier:
         ----------
         X_new : array-like, shape (n_samples, n_features)
             New data.
-        threshold : float, optional (default=0.5)
-            Threshold for classifying a sample as positive.
 
         Returns
         -------
         predictions : array, shape (n_samples,)
             Predicted class labels (1 for positive class, 0 for negative class).
         """
-        probabilities = self.predict_proba(X_new)
-        return (probabilities >= threshold).astype(int)
+        densities = self.predict_proba(X_new)
+        return np.argmax(densities, axis=1)
