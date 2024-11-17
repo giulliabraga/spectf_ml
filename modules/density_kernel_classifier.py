@@ -39,6 +39,7 @@ class KernelDensityClassifier(BaseEstimator, ClassifierMixin):
         y : array-like, shape (n_samples,)
             Target values (1 for positive class, 0 for negative class).
         """
+        self.classes_ = np.unique(y)
         X_positive = X[y == 1]
         X_negative = X[y == 0]
 
